@@ -2,11 +2,12 @@ export interface User {
   id: number
   email: string
   username: string
-  full_name?: string
+  name?: string
+  avatar?: string
   is_active: boolean
   is_verified: boolean
   created_at: string
-  updated_at?: string
+  updated_at: string
 }
 
 export interface Post {
@@ -36,7 +37,7 @@ export interface RegisterForm {
   username: string
   password: string
   confirmPassword: string
-  fullName?: string
+  name?: string
 }
 
 export interface CreatePostForm {

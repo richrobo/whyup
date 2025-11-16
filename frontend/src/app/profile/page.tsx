@@ -14,9 +14,13 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    email: ''
+    nickname: '',
+    introduce: ''
+  })
+  const [nicknameCheck, setNicknameCheck] = useState({
+    checked: false,
+    available: false,
+    message: ''
   })
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
@@ -25,9 +29,8 @@ export default function ProfilePage() {
       router.push('/login')
     } else {
       setFormData({
-        username: user.username,
-        full_name: user.full_name || '',
-        email: user.email
+        nickname: user.nickname || '',
+        introduce: user.introduce || ''
       })
       fetchUserPosts()
     }
@@ -49,19 +52,85 @@ export default function ProfilePage() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
+    
+    // 닉네임이 변경되면 중복 확인 상태 초기화
+    if (name === 'nickname') {
+      setNicknameCheck({
+        checked: false,
+        available: false,
+        message: ''
+      })
+    }
+  }
+
+  const checkNicknameAvailability = async () => {
+    if (!formData.nickname.trim()) {
+      setNicknameCheck({
+        checked: false,
+        available: false,
+        message: '닉네임을 입력해주세요.'
+      })
+      return
+    }
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/auth/check-nickname?nickname=${encodeURIComponent(formData.nickname)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setNicknameCheck({
+          checked: true,
+          available: data.available,
+          message: data.message
+        })
+      } else {
+        setNicknameCheck({
+          checked: true,
+          available: false,
+          message: '닉네임 확인 중 오류가 발생했습니다.'
+        })
+      }
+    } catch (error) {
+      console.error('닉네임 중복 확인 오류:', error)
+      setNicknameCheck({
+        checked: true,
+        available: false,
+        message: '닉네임 확인 중 오류가 발생했습니다.'
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!token) return
 
+    // 닉네임이 변경되었는데 중복 확인을 하지 않은 경우
+    if (formData.nickname !== user.nickname && !nicknameCheck.checked) {
+      alert('닉네임 중복 확인을 해주세요.')
+      return
+    }
+
+    // 닉네임이 변경되었는데 사용 불가능한 경우
+    if (formData.nickname !== user.nickname && nicknameCheck.checked && !nicknameCheck.available) {
+      alert('사용할 수 없는 닉네임입니다.')
+      return
+    }
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${user?.id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/auth/${user?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -110,60 +179,80 @@ export default function ProfilePage() {
                   <UserIcon className="h-12 w-12 text-primary-600 dark:text-primary-400" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {user.username}
+                  {user.nickname || '닉네임이 설정되지 않았습니다'}
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {user.full_name || '이름이 설정되지 않았습니다'}
-                </p>
+                {user.introduce && (
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">
+                    {user.introduce}
+                  </p>
+                )}
               </div>
 
               {editing ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      사용자명
+                      닉네임
                     </label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      required
-                    />
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        name="nickname"
+                        value={formData.nickname}
+                        onChange={handleInputChange}
+                        className="input-field flex-1"
+                        required
+                        maxLength={50}
+                      />
+                      <button
+                        type="button"
+                        onClick={checkNicknameAvailability}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        중복확인
+                      </button>
+                    </div>
+                    {nicknameCheck.checked && (
+                      <p className={`text-sm mt-1 ${
+                        nicknameCheck.available 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {nicknameCheck.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      이름
+                      자기소개
                     </label>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={formData.full_name}
+                    <textarea
+                      name="introduce"
+                      value={formData.introduce}
                       onChange={handleInputChange}
                       className="input-field"
+                      rows={4}
+                      placeholder="자기소개를 입력해주세요..."
+                      maxLength={500}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      이메일
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      required
-                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {formData.introduce.length}/500
+                    </p>
                   </div>
                   <div className="flex space-x-2">
-                    <button type="submit" className="btn-primary flex-1">
+                    <button 
+                      type="submit" 
+                      className="btn-primary flex-1"
+                      disabled={formData.nickname !== user.nickname && (!nicknameCheck.checked || !nicknameCheck.available)}
+                    >
                       저장
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditing(false)}
+                      onClick={() => {
+                        setEditing(false)
+                        setNicknameCheck({ checked: false, available: false, message: '' })
+                      }}
                       className="btn-secondary flex-1"
                     >
                       취소
@@ -187,6 +276,12 @@ export default function ProfilePage() {
                       {user.is_verified ? '인증됨' : '미인증'}
                     </span>
                   </div>
+                  {user.introduce && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="font-medium mb-1">자기소개:</p>
+                      <p className="whitespace-pre-wrap">{user.introduce}</p>
+                    </div>
+                  )}
                   <button
                     onClick={() => setEditing(true)}
                     className="w-full btn-primary flex items-center justify-center"

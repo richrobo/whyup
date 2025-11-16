@@ -1,38 +1,30 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { useEffect, useState } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import KakaoLogin from '@/components/KakaoLogin'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      const success = await login(email, password)
-      if (success) {
-        router.push('/')
-      } else {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.')
-      }
-    } catch (err) {
-      setError('로그인 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
-    }
+  // 이미 로그인된 사용자는 홈으로 리다이렉트
+  if (user) {
+    router.push('/')
+    return null
   }
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      setErrorMessage(decodeURIComponent(error))
+    }
+  }, [searchParams])
 
   return (
     <div className="min-h-screen">
@@ -44,63 +36,24 @@ export default function LoginPage() {
               로그인
             </h1>
             <p className="text-gray-600">
-              계정에 로그인하여 서비스를 이용하세요
+              카카오 계정으로 간편하게 로그인하세요
             </p>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{errorMessage}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                이메일
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-                placeholder="이메일을 입력하세요"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="비밀번호를 입력하세요"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? '로그인 중...' : '로그인'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              계정이 없으신가요?{' '}
-              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                회원가입
-              </Link>
-            </p>
+          <div className="mt-6">
+            <KakaoLogin
+              onSuccess={() => router.push('/')}
+              onError={(error) => {
+                console.error('카카오 로그인 오류:', error)
+                setErrorMessage(error)
+              }}
+            />
           </div>
         </div>
       </div>

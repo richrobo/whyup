@@ -43,11 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }
 
-  // 서버 사이드 렌더링 시 깜빡임 방지
-  if (!mounted) {
-    return <>{children}</>
-  }
-
+  // 서버 사이드 렌더링 시에도 기본값을 제공
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}

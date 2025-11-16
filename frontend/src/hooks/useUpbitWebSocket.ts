@@ -77,18 +77,26 @@ export function useUpbitWebSocket() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [markets, setMarkets] = useState<string[]>([])
   const [marketInfo, setMarketInfo] = useState<Map<string, {koreanName: string, englishName: string}>>(new Map())
+  
+  // 디버그 모드 확인
+  const isDebug = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_WEBSOCKET === 'true'
   const marketInfoRef = useRef<Map<string, {koreanName: string, englishName: string}>>(new Map())
 
   // 업비트 마켓 목록 가져오기
   const fetchMarkets = async () => {
     try {
+      if (isDebug) console.log('업비트 마켓 목록 가져오기 시작...')
       const response = await fetch('https://api.upbit.com/v1/market/all')
       const data: UpbitMarket[] = await response.json()
+      
+      if (isDebug) console.log('업비트 마켓 데이터 길이:', data.length)
       
       // KRW 마켓만 필터링
       const krwMarkets = data
         .filter(market => market.market.startsWith('KRW-'))
         .map(market => market.market)
+      
+      if (isDebug) console.log('업비트 KRW 마켓 개수:', krwMarkets.length)
       
       // 마켓 정보 맵 생성
       const marketInfoMap = new Map<string, {koreanName: string, englishName: string}>()
@@ -106,8 +114,8 @@ export function useUpbitWebSocket() {
       marketInfoRef.current = marketInfoMap
       return krwMarkets
     } catch (err) {
-      console.error('마켓 목록 가져오기 실패:', err)
-      setError('마켓 목록을 가져올 수 없습니다.')
+      console.error('업비트 마켓 목록 가져오기 실패:', err)
+      setError('업비트 마켓 목록을 가져올 수 없습니다.')
       return []
     }
   }
@@ -127,7 +135,7 @@ export function useUpbitWebSocket() {
       const ws = new WebSocket('wss://api.upbit.com/websocket/v1')
       
       ws.onopen = () => {
-        console.log('업비트 웹소켓 연결됨')
+        if (isDebug) console.log('업비트 웹소켓 연결됨')
         setError(null)
         
         // 업비트 웹소켓 구독 메시지 (배열 형태로 전송)
@@ -159,7 +167,7 @@ export function useUpbitWebSocket() {
             const symbol = data.code.replace('KRW-', '')
             const marketData = marketInfoRef.current.get(data.code)
             
-            console.log('Processing ticker for', data.code, 'marketData:', marketData)
+            if (isDebug) console.log('Processing ticker for', data.code, 'marketData:', marketData)
             
             const cryptoInfo: CryptoData = {
               symbol: symbol,
@@ -195,7 +203,7 @@ export function useUpbitWebSocket() {
       }
 
       ws.onclose = () => {
-        console.log('업비트 웹소켓 연결 종료')
+        if (isDebug) console.log('업비트 웹소켓 연결 종료')
         // 3초 후 재연결 시도
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket()

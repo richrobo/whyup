@@ -4,21 +4,23 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 interface User {
   id: number
-  email: string
-  username: string
-  full_name?: string
+  userid: string
+  name?: string
+  image?: string
   is_active: boolean
   is_verified: boolean
   created_at: string
+  updated_at: string
 }
 
 interface AuthContextType {
   user: User | null
   token: string | null
-  login: (email: string, password: string) => Promise<boolean>
-  register: (email: string, username: string, password: string, fullName?: string) => Promise<boolean>
+  kakaoLogin: (accessToken: string) => Promise<boolean>
   logout: () => void
   loading: boolean
+  setToken: (token: string | null) => void
+  setUser: (user: User | null) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -65,15 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const formData = new FormData()
-      formData.append('username', email)
-      formData.append('password', password)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+  const kakaoLogin = async (accessToken: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/kakao-login`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: accessToken,
+        }),
       })
 
       if (response.ok) {
@@ -85,29 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return false
     } catch (error) {
-      console.error('로그인 중 오류가 발생했습니다:', error)
-      return false
-    }
-  }
-
-  const register = async (email: string, username: string, password: string, fullName?: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          username,
-          password,
-          full_name: fullName,
-        }),
-      })
-
-      return response.ok
-    } catch (error) {
-      console.error('회원가입 중 오류가 발생했습니다:', error)
+      console.error('카카오 로그인 중 오류가 발생했습니다:', error)
       return false
     }
   }
@@ -121,10 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     token,
-    login,
-    register,
+    kakaoLogin,
     logout,
     loading,
+    setToken,
+    setUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
