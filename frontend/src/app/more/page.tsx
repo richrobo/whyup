@@ -114,10 +114,10 @@ export default function MorePage() {
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {user?.nickname || '닉네임이 설정되지 않았습니다'}
+                {user?.name || user?.userid || '닉네임이 설정되지 않았습니다'}
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
-                {user?.introduce || '자기소개가 없습니다'}
+                {user?.userid ? `@${user.userid}` : '사용자 ID가 없습니다'}
               </p>
               <div className="flex items-center mt-2">
                 <span className={`px-2 py-1 rounded-full text-xs ${

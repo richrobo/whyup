@@ -188,7 +188,7 @@ export default function ChatPage() {
     const message = {
       type: 'message',
       message: newMessage.trim(),
-      user: user?.nickname || '익명'
+      user: user?.name || user?.userid || '익명'
     }
 
     // 중복 전송 방지를 위한 디바운스
@@ -266,19 +266,20 @@ export default function ChatPage() {
               <div className="space-y-3">
                 {messages.map((msg, index) => {
                   // 이전 메시지와 같은 사용자인지 확인
+                  const currentUserName = user?.name || user?.userid || ''
                   const isSameUserAsPrevious = index > 0 && 
                     messages[index - 1].user === msg.user && 
-                    msg.user !== user.nickname && 
+                    msg.user !== currentUserName && 
                     msg.type !== 'system'
                   
                   return (
                     <div
                       key={msg.id}
                       className={`flex ${
-                        msg.user === user.nickname ? 'justify-end' : 'justify-start'
+                        msg.user === currentUserName ? 'justify-end' : 'justify-start'
                       }`}
                     >
-                      <div className={`flex ${msg.user === user.nickname ? 'flex-row' : 'flex-row-reverse'} items-end ${msg.user === user.nickname ? 'space-x-2' : 'space-x-3'}`}>
+                      <div className={`flex ${msg.user === currentUserName ? 'flex-row' : 'flex-row-reverse'} items-end ${msg.user === currentUserName ? 'space-x-2' : 'space-x-3'}`}>
                         {/* 시간 표시 */}
                         <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                           {msg.timestamp.toLocaleTimeString('ko-KR', {
@@ -291,7 +292,7 @@ export default function ChatPage() {
                         {/* 메시지 컨테이너 */}
                         <div className="flex flex-col">
                           {/* 다른 사람 메시지의 닉네임 (연속 메시지가 아닐 때만 표시) */}
-                          {msg.user !== user.nickname && msg.type !== 'system' && !isSameUserAsPrevious && (
+                          {msg.user !== currentUserName && msg.type !== 'system' && !isSameUserAsPrevious && (
                             <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 px-1">
                               {msg.user}
                             </div>
@@ -300,7 +301,7 @@ export default function ChatPage() {
                           {/* 메시지 박스 */}
                           <div
                             className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              msg.user === user.nickname
+                              msg.user === currentUserName
                                 ? 'bg-primary-600 text-white'
                                 : msg.type === 'system'
                                 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
