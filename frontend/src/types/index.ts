@@ -46,3 +46,10 @@ export interface CreatePostForm {
   summary?: string
   is_published: boolean
 }
+
+declare global {
+  interface Window {
+    kakaoTokenExchangeInProgress?: boolean;
+  }
+}
+
