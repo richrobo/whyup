@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "kakao-js-sdk": "^1.2.3"
+  }
+}

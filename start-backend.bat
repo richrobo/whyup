@@ -1,8 +1,5 @@
 @echo off
-echo Starting FastAPI Backend...
-cd backend
-python -m venv venv
-call venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
+echo Starting Django Backend...
+cd backend_django
+python manage.py runserver 0.0.0.0:8000
 pause

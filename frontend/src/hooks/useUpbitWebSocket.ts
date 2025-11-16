@@ -86,7 +86,11 @@ export function useUpbitWebSocket() {
   const fetchMarkets = async () => {
     try {
       if (isDebug) console.log('업비트 마켓 목록 가져오기 시작...')
-      const response = await fetch('https://api.upbit.com/v1/market/all')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/crypto/upbit/market/all`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data: UpbitMarket[] = await response.json()
       
       if (isDebug) console.log('업비트 마켓 데이터 길이:', data.length)
