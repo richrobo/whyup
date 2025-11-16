@@ -29,8 +29,8 @@ export default function ProfilePage() {
       router.push('/login')
     } else {
       setFormData({
-        nickname: user.nickname || '',
-        introduce: user.introduce || ''
+        nickname: user.name || user.userid || '',
+        introduce: ''
       })
       fetchUserPosts()
     }
@@ -116,14 +116,15 @@ export default function ProfilePage() {
     e.preventDefault()
     if (!token) return
 
+    const currentName = user?.name || user?.userid || ''
     // 닉네임이 변경되었는데 중복 확인을 하지 않은 경우
-    if (formData.nickname !== user.nickname && !nicknameCheck.checked) {
+    if (formData.nickname !== currentName && !nicknameCheck.checked) {
       alert('닉네임 중복 확인을 해주세요.')
       return
     }
 
     // 닉네임이 변경되었는데 사용 불가능한 경우
-    if (formData.nickname !== user.nickname && nicknameCheck.checked && !nicknameCheck.available) {
+    if (formData.nickname !== currentName && nicknameCheck.checked && !nicknameCheck.available) {
       alert('사용할 수 없는 닉네임입니다.')
       return
     }
@@ -179,11 +180,11 @@ export default function ProfilePage() {
                   <UserIcon className="h-12 w-12 text-primary-600 dark:text-primary-400" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {user.nickname || '닉네임이 설정되지 않았습니다'}
+                  {user.name || user.userid || '닉네임이 설정되지 않았습니다'}
                 </h1>
-                {user.introduce && (
+                {user.userid && (
                   <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    {user.introduce}
+                    @{user.userid}
                   </p>
                 )}
               </div>
@@ -243,7 +244,7 @@ export default function ProfilePage() {
                     <button 
                       type="submit" 
                       className="btn-primary flex-1"
-                      disabled={formData.nickname !== user.nickname && (!nicknameCheck.checked || !nicknameCheck.available)}
+                      disabled={formData.nickname !== (user?.name || user?.userid || '') && (!nicknameCheck.checked || !nicknameCheck.available)}
                     >
                       저장
                     </button>
@@ -276,10 +277,10 @@ export default function ProfilePage() {
                       {user.is_verified ? '인증됨' : '미인증'}
                     </span>
                   </div>
-                  {user.introduce && (
+                  {formData.introduce && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       <p className="font-medium mb-1">자기소개:</p>
-                      <p className="whitespace-pre-wrap">{user.introduce}</p>
+                      <p className="whitespace-pre-wrap">{formData.introduce}</p>
                     </div>
                   )}
                   <button
