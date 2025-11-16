@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-eg*x8n7i6f1zw9n_0f8(#$v65@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['whyup.onrender.com' ,'localhost', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
