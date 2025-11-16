@@ -8,16 +8,17 @@ import Footer from '@/components/Footer'
 import KakaoLogin from '@/components/KakaoLogin'
 
 export default function LoginPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // 이미 로그인된 사용자는 홈으로 리다이렉트
-  if (user) {
-    router.push('/')
-    return null
-  }
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/')
+    }
+  }, [user, authLoading, router])
 
   useEffect(() => {
     const error = searchParams.get('error')
@@ -25,6 +26,15 @@ export default function LoginPage() {
       setErrorMessage(decodeURIComponent(error))
     }
   }, [searchParams])
+
+  // 로딩 중이거나 이미 로그인된 사용자는 아무것도 렌더링하지 않음
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">

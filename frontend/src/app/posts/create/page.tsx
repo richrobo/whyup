@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import Header from '@/components/Header'
@@ -15,13 +15,29 @@ export default function CreatePostPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, token } = useAuth()
+  const { user, token, loading: authLoading } = useAuth()
   const router = useRouter()
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
-  if (!user) {
-    router.push('/login')
-    return null
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  // 로딩 중이거나 사용자가 없으면 아무것도 렌더링하지 않음
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
