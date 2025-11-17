@@ -45,7 +45,7 @@ export default function KakaoLogin({ onSuccess, onError }: KakaoLoginProps) {
       console.log('카카오 로그인 버튼 클릭됨')
       // 카카오 OAuth URL 생성
       const REST_API_KEY = '3f136af5426d0667ca9541cf878c2246'
-      const REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`
+      const REDIRECT_URI = `https://whyup.vercel.app/auth/kakao/callback`
       
       const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`
       
