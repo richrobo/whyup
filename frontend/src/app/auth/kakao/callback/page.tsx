@@ -37,7 +37,7 @@ export default function KakaoCallbackPage() {
   const exchangeCodeForToken = async (code: string) => {
     try {
       console.log('토큰 교환 시작:', code)
-      const apiUrl = 'http://localhost:8000'
+      const apiUrl = 'https://whyup.onrender.com'
       console.log('API URL:', `${apiUrl}/api/auth/kakao-token-exchange`)
       console.log('요청 데이터:', { code })
       
