@@ -150,7 +150,7 @@ def kakao_token_exchange_view(request):
         import requests
         
         REST_API_KEY = '3f136af5426d0667ca9541cf878c2246'
-        REDIRECT_URI = 'http://localhost:3000/auth/kakao/callback'
+        REDIRECT_URI = 'https://whyup.vercel.app/auth/kakao/callback'
         
         token_response = requests.post('https://kauth.kakao.com/oauth/token', {
             'grant_type': 'authorization_code',
