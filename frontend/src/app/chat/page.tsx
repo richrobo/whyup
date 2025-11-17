@@ -57,7 +57,7 @@ export default function ChatPage() {
       }
 
       isConnecting = true
-      const wsUrl = 'wss://whyup-wss.onrender.com/ws'
+      const wsUrl = 'wss://whyup-ggn1.onrender.com/ws'
       websocket = new WebSocket(wsUrl)
 
       websocket.onopen = () => {
